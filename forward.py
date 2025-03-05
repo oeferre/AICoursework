@@ -1,5 +1,8 @@
 # facts is a dictionary where keys are atoms names and values are set of tuples representing their instances
 # e.g., {"Lecturer" : {("fabio",),("marco",)}} represents Lecturer(fabio) and Lecturer(marco)
+import numpy
+import heapq
+
 facts = {}
 
 # list of rules
@@ -152,4 +155,20 @@ def saturateKB():
                 new_fact_found = True  # Continue iterating
 #
 # use the functions add_fact and add_rule to test your implementation on the preworkshop exercises
-    
+def euclidean_distance(p1,p2,rel):
+    a,b = p1
+    c,d = p2
+    euclidean_distance = numpy.sqrt((a-c)**2 + (b-d)^2)*(1+int(rel[1])-1*0.2)
+    return euclidean_distance
+
+print(euclidean_distance((1,1),(2,2),"R2"))
+add_fact("A",(0,0))
+add_fact("B",(-2,2))
+add_fact("C",(2,2))
+add_fact("D",(4,1))
+add_fact("E",(4,-2))
+add_fact("F",(-4,0))
+add_fact("G",(2,-1))
+add_fact("H",(0,-4))
+
+
