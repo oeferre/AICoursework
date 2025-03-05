@@ -135,12 +135,21 @@ def derive(substitutions, head):
 #
 # uncomment and implement the following functions
 # the input is a rule and it is meant to add to facts all new facts derivable from the rule applications
-# def apply_rule(rule):
-#
+def apply_rule(rule):
+    body, head = rule  # Unpack the rule: body (conditions), head (inferred fact)
+    substitutions = find_substitutions(body, {}, [])  # Find variable matches
+    return derive(substitutions, head)  # Apply and derive new fact
+
+
 # no input needed as facts and rules are considered global
 # the function should cycle through the rules until no new fact can be derived
-# def saturateKB():
-#
+def saturateKB():
+    new_fact_found = True  # Keep iterating while new facts are found
+    while new_fact_found:
+        new_fact_found = False  # Assume no new facts will be found
+        for rule in rules:
+            if apply_rule(rule):  # If new facts are inferred
+                new_fact_found = True  # Continue iterating
 #
 # use the functions add_fact and add_rule to test your implementation on the preworkshop exercises
     
