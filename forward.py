@@ -1,5 +1,4 @@
-# facts is a dictionary where keys are atoms names and values are set of tuples representing their instances
-# e.g., {"Lecturer" : {("fabio",),("marco",)}} represents Lecturer(fabio) and Lecturer(marco)
+
 import numpy
 import heapq
 
@@ -13,6 +12,8 @@ facts = {}
 # represents the rule Lecturer(x) & Teaches(x,y) -> Module(y)
 rules = []
 
+# facts is a dictionary where keys are atoms names and values are set of tuples representing their instances
+# e.g., {"Lecturer" : {("fabio",),("marco",)}} represents Lecturer(fabio) and Lecturer(marco)
 
 # simple function for adding facts
 # the input is the name of the atom followed by its arguments
@@ -161,14 +162,50 @@ def euclidean_distance(p1,p2,rel):
     euclidean_distance = numpy.sqrt((a-c)**2 + (b-d)^2)*(1+int(rel[1])-1*0.2)
     return euclidean_distance
 
-print(euclidean_distance((1,1),(2,2),"R2"))
-add_fact("A",(0,0))
-add_fact("B",(-2,2))
-add_fact("C",(2,2))
-add_fact("D",(4,1))
-add_fact("E",(4,-2))
-add_fact("F",(-4,0))
-add_fact("G",(2,-1))
-add_fact("H",(0,-4))
+add_rule(
+    [("Node", "Origin"), ("Connected", "Origin", "Destination", "R")], 
+    ("CanMoveTo", "Origin", "Destination", "R")
+)
+
+add_fact("Node", (0,0))
+add_fact("Connected", (0,0), (-2,2),"R1")
+add_fact("Connected", (0,0), (2,-1), "R1")
+
+add_fact("Node", (-2,2))
+add_fact("Connected", (-2,2), (-4,0),"R2")
+
+add_fact("Node", (-4,0))
+add_fact("Connected", (-4,0), (0,-4),"R4")
+
+add_fact("Node", (0,-4))
+add_fact("Connected", (0,-4),(4,-2),"R1")
+
+add_fact("Node", (4,-2))
+add_fact("Connected", (4,-2), (4,1), "R5")
+
+add_fact("Node", (4,1))
+add_fact("Connected", (4,1),  (4,-2), "R4")
+
+add_fact("Node", (2,-1))
+add_fact("Connected", (2,-1), (2,2), "R2")
+add_fact("Connected", (2,-1), (2,2), "R1")
+add_fact("Connected", (2,-1), (0,-4), "R5")
+
+add_fact("Node", (2,2))
+add_fact("Connected", (2,2), (0,0), "R3")
+add_fact("Connected", (2,2), (4,1), "R2")
+
+
+saturateKB()
+
+print(facts)
+#add_fact("B",(-2,2))
+#add_fact("C",(2,2))
+#add_fact("D",(4,1))
+#add_fact("E",(4,-2))
+#add_fact("F",(-4,0))
+#add_fact("G",(2,-1))
+#add_fact("H",(0,-4))
+#print(euclidean_distance((1,1),(2,2),"R2"))
 
 
