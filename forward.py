@@ -159,7 +159,7 @@ def saturateKB():
 def euclidean_distance(p1,p2,rel):
     a,b = p1
     c,d = p2
-    euclidean_distance = numpy.sqrt((a-c)**2 + (b-d)^2)*(1+int(rel[1])-1*0.2)
+    euclidean_distance = numpy.sqrt((a-c)**2 + (b-d)**2)*(1+(int(rel[1])-1)*0.2)
     return euclidean_distance
 
 add_rule(
@@ -195,10 +195,90 @@ add_fact("Node", (2,2))
 add_fact("Connected", (2,2), (0,0), "R3")
 add_fact("Connected", (2,2), (4,1), "R2")
 
+def update_goals():
+    return objective_list
 
 saturateKB()
 
+def update_goals(predicate_names, predicates, known_states):
+    return predicate_names
+
+def run(start, goal, costlimit, R_not_allowed=""):
+    if "Connected" not in facts:
+        return None  # No connections exist
+
+    blocked_relations = set(R_not_allowed.split()) if R_not_allowed else set()
+    priority_queue = [(0, start, [start])]  # (cost, current_node, path)
+    shortest_distance = {start: 0}
+
+    while priority_queue:
+        cost, current, path = heapq.heappop(priority_queue)
+
+        if cost > costlimit:
+            return "Can't be reached due to cost"
+
+        if current == goal:
+            return path, cost  # Return shortest path and cost
+
+        for node, neighbor, relation in facts["Connected"]:
+            if node == current and relation not in blocked_relations:
+                distance = euclidean_distance(current, neighbor, relation)
+                new_cost = cost + distance
+
+                if neighbor not in shortest_distance or new_cost < shortest_distance[neighbor]:
+                    shortest_distance[neighbor] = new_cost
+                    heapq.heappush(priority_queue, (new_cost, neighbor, path + [neighbor]))
+
+                if new_cost > costlimit:
+                    return "Can't be reached due to cost" 
+
+    return None  # No valid path found  # No path found
+
+ 
+
+
+def greedy_pathfinding(start, goal, costlimit, R_not_allowed=""):
+    if "Connected" not in facts:
+        return [] 
+
+   
+    blocked_relations = set(R_not_allowed.split()) if R_not_allowed else set()
+
+    priority_queue = [] 
+    heapq.heappush(priority_queue, (0, start, [start])) 
+
+    visited = set()  
+
+    while priority_queue:
+        cost, current, path = heapq.heappop(priority_queue)  
+
+        if current == goal:
+            return path  
+
+        if current in visited:
+            continue  
+
+        visited.add(current)
+
+
+        for entry in facts["Connected"]:
+            node, neighbor, relation = entry
+            if node == current and (not blocked_relations or relation not in blocked_relations):  
+                distance = euclidean_distance(current, neighbor, relation) 
+                new_cost = cost + distance 
+
+                if new_cost <= costlimit: 
+                    heapq.heappush(priority_queue, (new_cost, neighbor, path + [neighbor])) 
+
+    return []  
+
+#print(run((0,-4),(4,1),150,""))
+#print(euclidean_distance((2,-1),(0,-4),"R5")+(euclidean_distance((0,0),(2,-1),"R1")))
+
 print(facts)
+
+#print(numpy.sqrt(8))
+#print(facts)
 #add_fact("B",(-2,2))
 #add_fact("C",(2,2))
 #add_fact("D",(4,1))
