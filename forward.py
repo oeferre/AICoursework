@@ -163,56 +163,84 @@ def euclidean_distance(p1,p2,rel):
     return euclidean_distance
 
 add_rule(
-    [("Node", "Origin"), ("Connected", "Origin", "Destination", "R")], 
+    [("Node", "Origin"), ("R#", "Origin", "Destination")], 
     ("CanMoveTo", "Origin", "Destination", "R")
 )
 
 
 
 add_fact("Node",(0,0))
-add_fact("Connected",(0,0),(-2,2),"R1")
-add_fact("Connected",(0,0),(2,-1),"R1")
+add_fact("R1",(0,0),(-2,2))
+add_fact("R1",(0,0),(2,-1))
 
 add_fact("Node",(-2,2))
-add_fact("Connected",(-2,2),(-4,0),"R2")
+add_fact("R2",(-2,2),(-4,0))
 
 add_fact("Node",(-4,0))
-add_fact("Connected",(-4,0),(0,-4),"R4")
+add_fact("R4",(-4,0),(0,-4))
 
 add_fact("Node",(0,-4))
-add_fact("Connected",(0,-4),(4,-2),"R1")
-add_fact("Connected",(0,-4),(0,0),"R2")
+add_fact("R1",(0,-4),(4,-2))
+add_fact("R2",(0,-4),(0,0))
 
 add_fact("Node",(4,-2))
-add_fact("Connected",(4,-2),(4,1),"R5")
+add_fact("R5",(4,-2),(4,1))
 
 add_fact("Node",(4,1))
-add_fact("Connected",(4,1),(4,-2),"R4")
+add_fact("R4",(4,1),(4,-2))
 
 add_fact("Node",(2,-1))
-add_fact("Connected",(2,-1),(2,2),"R2")
-add_fact("Connected",(2,-1),(2,2),"R1")
-add_fact("Connected",(2,-1),(0,-4),"R5")
+add_fact("R2",(2,-1),(2,2))
+add_fact("R1",(2,-1),(2,2))
+add_fact("R5",(2,-1),(0,-4))
 
 add_fact("Node",(2,2))
-add_fact("Connected",(2,2),(0,0),"R3")
-add_fact("Connected",(2,2),(4,1),"R2")
+add_fact("R3",(2,2),(0,0))
+add_fact("R2",(2,2),(4,1))
 
+add_fact("A",(0,0),(2,2),(2,-1))
+add_fact("B",(0,0),(2,2),(2,1),(0,-4))
 #saturateKB()
 
 
-objective_value= set()
+objective_value= []
 
 def update_goals(objectives):
-    if "Connected" not in facts:
-        return set()
+    list_values = []
     for objective in objectives:
-        for origin, destination, relation in facts["Connected"]:
-            if eval(objective) == destination:
-                objective_value.add(destination)
+        if objective in facts:
+            list_values.append(facts[objective])
+    print(list_values)
+    #objective_value = li
+    intersection = list_values[0] & list_values[1]
+    for tuple in list_values[0]:
+        for tuple_square in tuple:
+            #print(tuple_square)
+            #print("1")
+            for tuple2 in list_values[1]:
+                for tuple_square2 in tuple2:
+                   # print("2")
+                    if tuple_square2[0] == tuple_square[0] and tuple_square2[1] == tuple_square[1]:   
+                        print("TRIAL DEBUG")
+                        print(tuple_square2[0])
+                        print(tuple_square2[1])
+                        print(tuple_square[0])
+                        print(tuple_square[1])
+                        if(tuple_square2 not in objective_value):                 
+                            objective_value.append(tuple_square2)
+                    
+   
+    print(list_values[0])
+    print(list_values[1])
+    print(intersection)
+    
+    #print(common_values)
+    print("RESULT FUNCTION")
     return objective_value
+                
+    
 
-objective_value= (update_goals(["4,1","(0,-4)","(-2,2)"]))
+objective_value= (update_goals(["A","B","(-2,2)"]))
 
 def run(start, costlimit,allowed):
     path_already_done = []
@@ -269,6 +297,7 @@ def run(start, costlimit,allowed):
 
 print(objective_value)
 print(run((0,0),150, ["R1","R2","R3","R4","R5"] ))
+#print(facts)
 #print(euclidean_distance((2,-1),(0,-4),"R5")+(euclidean_distance((0,0),(2,-1),"R1")))
 
 
