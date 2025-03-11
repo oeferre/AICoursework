@@ -164,7 +164,7 @@ def euclidean_distance(p1,p2,rel):
 
 add_rule(
     [("Node", "Origin"), ("R#", "Origin", "Destination")], 
-    ("CanMoveTo", "Origin", "Destination", "R")
+    ("R#", "Origin", "Destination")
 )
 
 
@@ -198,104 +198,116 @@ add_fact("Node",(2,2))
 add_fact("R3",(2,2),(0,0))
 add_fact("R2",(2,2),(4,1))
 
-add_fact("A",(0,0),(2,2),(2,-1))
-add_fact("B",(0,0),(2,2),(2,1),(0,-4))
-#saturateKB()
+add_fact("A",(4,-2),(2,-1))  
+
+
+add_fact("B", (0,0), (4,-2))
+add_fact("C", (0,0), (4,-2), (2,1), (0,-4))
+
+add_fact("D",(6,5),(6,4))
+
 
 
 objective_value= []
 
+
+
+
+def normalize(fact_set): #Made for standarizing all possible inputs to functions
+        normalized = set()
+        for item in fact_set:
+            if isinstance(item, tuple) and len(item) > 1 and isinstance(item[0], tuple):  
+                normalized.update(item)  # ✅ Flatten tuple of tuples
+            else:
+                normalized.add(item)  # ✅ Add normal tuples
+        return normalized
+
+
+
 def update_goals(objectives):
-    list_values = []
-    for objective in objectives:
-        if objective in facts:
-            list_values.append(facts[objective])
-    print(list_values)
-    #objective_value = li
-    intersection = list_values[0] & list_values[1]
-    for tuple in list_values[0]:
-        for tuple_square in tuple:
-            #print(tuple_square)
-            #print("1")
-            for tuple2 in list_values[1]:
-                for tuple_square2 in tuple2:
-                   # print("2")
-                    if tuple_square2[0] == tuple_square[0] and tuple_square2[1] == tuple_square[1]:   
-                        print("TRIAL DEBUG")
-                        print(tuple_square2[0])
-                        print(tuple_square2[1])
-                        print(tuple_square[0])
-                        print(tuple_square[1])
-                        if(tuple_square2 not in objective_value):                 
-                            objective_value.append(tuple_square2)
-                    
-   
-    print(list_values[0])
-    print(list_values[1])
-    print(intersection)
     
-    #print(common_values)
-    print("RESULT FUNCTION")
-    return objective_value
-                
+    if objectives[0] not in facts:
+        return set()     
+
+    first = normalize(facts[objectives[0]])  
+
+    for i in objectives[1:]:  # ✅ Iterate from the second element onward
+        if i in facts:  # ✅ Ensure the fact exists
+            first &= normalize(facts[i])  # ✅ Find intersection of normalized sets
+        else:
+            return set()  # ✅ If any fact is missing, return empty set
+
+    return first
+    
     
 
-objective_value= (update_goals(["A","B","(-2,2)"]))
 
-def run(start, costlimit,allowed):
-    path_already_done = []
+objective_value = update_goals(["B","A","C"])     
+print(objective_value)    
+def run(start, costlimit, allowed):
+    path_already_done = [] 
     costs = []
-    for i in range (3):
-        if "Connected" not in facts:
-            return None  # No connections exist
-        
-        print(allowed)
-        #print(objective_value)
+    best_paths = []
 
-        priority_queue = [(0, start, [start])]  # (cost, current_node, path)
-        #print("THis is priority queue" + str(priority_queue))
-        shortest_distance = {start: 0}
-        #print("This is shirtest " +str(shortest_distance))
+    connected_facts = set()
+    for relation in allowed:
+        if relation in facts:
+            connected_facts.update(facts[relation]) 
 
-        while priority_queue:
-            cost, current, path = heapq.heappop(priority_queue) 
+    if not connected_facts:
+        return "No valid paths found: No valid connections exist"
 
-            #if cost > costlimit:
-            #   return "Can't be reached due to cost"
+    priority_queue = [(0, start, [start])]  
+    shortest_distance = {start: 0} 
+
+    while priority_queue:
+        cost, current, path = heapq.heappop(priority_queue) 
+
+ 
+        if cost > costlimit:
+            continue
+
+        if current in objective_value and path not in path_already_done:
+            print(f"Found path: {path} with cost: {cost}")
+            path_already_done.append(path)
+            costs.append(cost)
+
+            best_paths.append((cost, path))  
+            
    
-            if current in objective_value and path not in path_already_done:
-                print("Path "+str(i)+":" + str(path) +"With a cost: "+str(cost))
-                path_already_done.append(path)
-                costs.append(cost)   # Return shortest path and cost
+            if len(best_paths) == 3:
+                break  
 
-            for node, neighbor, r in facts["Connected"]:
-                #print("got past this")
-                #print(f"Checking: Node={node}, Neighbor={neighbor}, Relation={relation}, Current={current}, Allowed={allowed}")
-                if node == current and (r in allowed ):
-                    #print("got past this2")
-                    #print(f"adding worked with {r}")
-                
-                    distance = euclidean_distance(current, neighbor, r)
-                    new_cost = cost + distance
-                    if neighbor not in shortest_distance or new_cost < shortest_distance[neighbor]:
-                        #print("got past this 3")
-                        shortest_distance[neighbor] = new_cost
-                        heapq.heappush(priority_queue, (new_cost, neighbor, path + [neighbor]))
+        for node, neighbor in connected_facts:
+            if node == current:
+                distance = euclidean_distance(current, neighbor, "R1")  # Assuming "R#" relations exist
+                new_cost = cost + distance
 
-                    if new_cost > costlimit:
-                        return "Can't be reached due to cost" 
+               
+                if new_cost > costlimit:
+                    continue  
 
+            
+                if neighbor not in shortest_distance or new_cost < shortest_distance[neighbor]:
+                    shortest_distance[neighbor] = new_cost
+                    heapq.heappush(priority_queue, (new_cost, neighbor, path + [neighbor]))
 
-
-    return None  # No valid path found  # No path found
-
- 
+    
+    if best_paths:
+        best_paths.sort()  
+        return [f"Path {i+1}: {path} with cost: {cost}" for i, (cost, path) in enumerate(best_paths)]
+    else:
+        return "No valid paths found within cost limit"
 
 
- 
 
 
-print(objective_value)
+
+
+
+print(run((0,0),150, ["R1","R2","R3","R4","R5"] ))
+print("NOW SATURATED")
+saturateKB()
 print(run((0,0),150, ["R1","R2","R3","R4","R5"] ))
 #print(facts)
 #print(euclidean_distance((2,-1),(0,-4),"R5")+(euclidean_distance((0,0),(2,-1),"R1")))
